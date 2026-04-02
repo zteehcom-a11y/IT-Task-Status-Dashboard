@@ -214,17 +214,44 @@
         }
 
         function renderPerf() {
-            const map = {}; filteredData.forEach(t => { const n = t['Action by']||'N/A'; map[n] = (map[n]||0)+1; });
-            const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0, 5);
+            const map = {}; filteredData.forEach(t => { const n = t['BU Name']||'N/A'; map[n] = (map[n]||0)+1; });
+            const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0, 10);
             if(charts.perf) charts.perf.destroy();
             charts.perf = new Chart(document.getElementById('perfChart'), {
                 type: 'bar',
-                data: { labels: sorted.map(x=>x[0]), datasets: [{ data: sorted.map(x=>x[1]), backgroundColor: palette[0], borderRadius: 8 }] },
-                options: { indexAxis: 'y', maintainAspectRatio: false }
+                data: { labels: sorted.map(x=>x[0]), datasets: [{ label: 'Tickets', data: sorted.map(x=>x[1]), backgroundColor: '#6366F1', borderRadius: 8 }] },
+                options: { 
+                    indexAxis: 'y', 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    onClick: (e, el) => { if(el.length) setFilter('BU', sorted[el[0].index][0]); }
+                }
             });
         }
 
-        function renderTable() {
+        // Add BU filter to activeFilters if not exists
+        if (!activeFilters.BU) activeFilters.BU = 'all';
+
+        // Update applyFilters to handle BU
+        function applyFilters() {
+            filteredData = rawData.filter(t => {
+                if (activeFilters.Module !== 'all' && t.Module !== activeFilters.Module) return false;
+                if (activeFilters.Method !== 'all' && t['Resolution Method'] !== activeFilters.Method) return false;
+                if (activeFilters.BU && activeFilters.BU !== 'all' && t['BU Name'] !== activeFilters.BU) return false;
+                if (activeFilters.Month !== 'all') {
+                    const d = new Date(t['Resolved Date']);
+                    if (`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}` !== activeFilters.Month) return false;
+                }
+                if (activeFilters.Cause !== 'all') {
+                    const notes = t['Resolution Notes'] || '';
+                    if (!notes.includes(activeFilters.Cause)) return false;
+                }
+                return true;
+            });
+            updateUI();
+        }
+
+        function resetFilters() { activeFilters = { Module: 'all', Month: 'all', Method: 'all', Cause: 'all', BU: 'all' }; applyFilters(); }
             const body = document.getElementById('tableBody');
             body.innerHTML = '';
             filteredData.slice(0, 50).forEach(t => {
