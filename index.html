@@ -6,8 +6,6 @@
     <title>IT Task Status Dashboard 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- MANDATORY: LOADING THE 2026 DATASET -->
-    <script src="service_data_2026.js?v=2026_FORCE_V1"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
@@ -25,11 +23,16 @@
     </style>
 </head>
 <body class="p-4 lg:p-8">
-    <div class="max-w-[1800px] mx-auto">
+    <div id="loadingOverlay" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center transition-opacity duration-500">
+        <i class="fas fa-circle-notch fa-spin text-blue-600 text-5xl mb-4"></i>
+        <p class="font-black text-slate-900 tracking-widest uppercase text-xs">Connecting to 2026 Database...</p>
+    </div>
+
+    <div class="max-w-[1800px] mx-auto opacity-0 transition-opacity duration-1000" id="mainDashboard">
         <header class="flex justify-between items-center mb-8">
             <div>
                 <h1 class="text-3xl font-black text-slate-900 tracking-tight">IT SERVICE <span class="text-blue-600">ANALYTICS</span> 2026</h1>
-                <p id="dataTimestamp" class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">Live Database Connection</p>
+                <p id="dataTimestamp" class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">Authenticating Data Source...</p>
             </div>
             <button onclick="resetFilters()" class="px-6 py-2 bg-slate-900 text-white text-[10px] font-black rounded-xl hover:bg-blue-600 transition-all shadow-xl">RESET ALL FILTERS</button>
         </header>
@@ -37,10 +40,10 @@
         <div class="grid grid-cols-12 gap-6 mb-8">
             <div class="col-span-12 lg:col-span-9 pastel-card p-8">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div class="bg-blue-600 p-6 rounded-[32px] text-center text-white shadow-xl shadow-blue-100">
+                    <div class="bg-blue-600 p-6 rounded-[32px] text-center text-white shadow-xl">
                         <span class="text-[9px] font-black uppercase opacity-80">Total Volume</span>
                         <h3 id="execTotalTickets" class="text-4xl font-black my-1">0</h3>
-                        <p class="text-[8px] font-bold opacity-60">100% OF DATASET</p>
+                        <p class="text-[8px] font-bold opacity-60">100% SECURE ANALYTICS</p>
                     </div>
                     <div class="pt-2"><div class="flex justify-between font-black text-[10px] mb-2"><span>CLOSED RATE</span><span id="pctClosed" class="text-emerald-500">0%</span></div><div class="exec-progress"><div id="barClosed" class="exec-bar bg-emerald-400" style="width: 0%"></div></div></div>
                     <div class="pt-2"><div class="flex justify-between font-black text-[10px] mb-2"><span>SLA SUCCESS</span><span id="pctSLA" class="text-indigo-500">0%</span></div><div class="exec-progress"><div id="barSLA" class="exec-bar bg-indigo-400" style="width: 0%"></div></div></div>
@@ -56,7 +59,7 @@
         </div>
 
         <div class="grid grid-cols-12 gap-6">
-            <div class="col-span-12 lg:col-span-4 pastel-card p-6"><div class="section-header"><h2 class="section-title">Top Performance</h2></div><div style="height: 250px;"><canvas id="perfChart"></canvas></div></div>
+            <div class="col-span-12 lg:col-span-4 pastel-card p-6"><div class="section-header"><h2 class="section-title">Service Locations</h2></div><div style="height: 250px;"><canvas id="perfChart"></canvas></div></div>
             <div class="col-span-12 lg:col-span-4 pastel-card p-6"><div class="section-header"><h2 class="section-title">Methods</h2></div><div style="height: 250px;"><canvas id="methodChart"></canvas></div></div>
             <div class="col-span-12 lg:col-span-4 pastel-card p-6">
                 <div class="section-header"><h2 class="section-title">Live Data Feed</h2></div>
@@ -78,31 +81,49 @@
                     <div class="p-4 bg-slate-50 rounded-2xl"><label class="text-blue-500 block mb-1 uppercase font-black text-[9px]">Requester</label><p id="modalRequester" class="font-bold text-slate-700"></p></div>
                     <div class="p-4 bg-slate-50 rounded-2xl"><label class="text-purple-500 block mb-1 uppercase font-black text-[9px]">Unit</label><p id="modalBU" class="font-bold text-slate-700"></p></div>
                 </div>
-                <div class="bg-blue-600 p-6 rounded-3xl text-white"><label class="text-blue-200 block mb-2 uppercase font-black text-[9px]">Technical Notes</label><p id="modalNotes" class="text-sm font-bold italic leading-relaxed"></p></div>
+                <div class="bg-blue-600 p-6 rounded-3xl text-white">
+                    <label class="text-blue-200 block mb-2 uppercase font-black text-[9px]">Technical Notes</label>
+                    <p id="modalNotes" class="text-sm font-bold italic leading-relaxed"></p>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let activeFilters = { Module: 'all', Month: 'all', Method: 'all', Cause: 'all' };
+        let activeFilters = { Module: 'all', Month: 'all', Method: 'all', Cause: 'all', BU: 'all' };
         let filteredData = [];
         let charts = {};
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const palette = ['#3B82F6', '#F43F5E', '#10B981', '#8B5CF6', '#F59E0B', '#6366F1'];
 
-        function init() {
-            if (typeof rawData === 'undefined' || !rawData.length) {
-                console.error("Critical: Data missing.");
-                document.body.innerHTML = `<div class="flex flex-col items-center justify-center h-screen font-black text-slate-400 text-center">
-                    <i class="fas fa-database text-5xl mb-4 text-blue-500"></i>
-                    <div>WAITING FOR 100% DATASET...</div>
-                    <div class="text-[10px] mt-2 opacity-50 uppercase tracking-widest">Auto-refreshing in 5 seconds</div>
-                </div>`;
-                setTimeout(() => location.reload(), 5000);
-                return;
+        // ROBUST ASYNC LOADER
+        function loadDataFile() {
+            return new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = 'service_data_2026.js?v=' + Date.now();
+                script.onload = () => resolve(true);
+                script.onerror = () => resolve(false);
+                document.head.appendChild(script);
+            });
+        }
+
+        async function init() {
+            const success = await loadDataFile();
+            if (success && typeof window.rawData !== 'undefined') {
+                console.log("Database connected:", window.rawData.length);
+                document.getElementById('dataTimestamp').textContent = `CONNECTED: ${window.rawData.length.toLocaleString()} RECORDS`;
+                
+                // Hide loader, show dashboard
+                document.getElementById('loadingOverlay').classList.add('opacity-0');
+                setTimeout(() => {
+                    document.getElementById('loadingOverlay').remove();
+                    document.getElementById('mainDashboard').classList.remove('opacity-0');
+                    applyFilters();
+                }, 500);
+            } else {
+                console.error("Critical: Data file not found or corrupted.");
+                document.getElementById('loadingOverlay').innerHTML = `<div class="text-center p-10"><i class="fas fa-exclamation-triangle text-rose-500 text-5xl mb-4"></i><h1 class="font-black text-slate-900">DATABASE CONNECTION FAILED</h1><p class="text-xs text-slate-400 mt-2">Please ensure service_data_2026.js is present.</p></div>`;
             }
-            document.getElementById('dataTimestamp').textContent = `100% DATA CONNECTED: ${rawData.length.toLocaleString()} RECORDS`;
-            applyFilters();
         }
 
         function setFilter(key, value) {
@@ -112,9 +133,10 @@
         }
 
         function applyFilters() {
-            filteredData = rawData.filter(t => {
+            filteredData = window.rawData.filter(t => {
                 if (activeFilters.Module !== 'all' && t.Module !== activeFilters.Module) return false;
                 if (activeFilters.Method !== 'all' && t['Resolution Method'] !== activeFilters.Method) return false;
+                if (activeFilters.BU !== 'all' && t['BU Name'] !== activeFilters.BU) return false;
                 if (activeFilters.Month !== 'all') {
                     const d = new Date(t['Resolved Date']);
                     if (`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}` !== activeFilters.Month) return false;
@@ -128,7 +150,7 @@
             updateUI();
         }
 
-        function resetFilters() { activeFilters = { Module: 'all', Month: 'all', Method: 'all', Cause: 'all' }; applyFilters(); }
+        function resetFilters() { activeFilters = { Module: 'all', Month: 'all', Method: 'all', Cause: 'all', BU: 'all' }; applyFilters(); }
 
         function updateUI() {
             const total = filteredData.length;
@@ -155,7 +177,7 @@
         }
 
         function updateModuleList() {
-            const map = {}; rawData.forEach(t => { if(t.Module) map[t.Module] = (map[t.Module]||0)+1; });
+            const map = {}; window.rawData.forEach(t => { if(t.Module) map[t.Module] = (map[t.Module]||0)+1; });
             const list = document.getElementById('moduleList');
             list.innerHTML = '';
             Object.keys(map).sort().forEach(name => {
@@ -174,7 +196,7 @@
             });
             const container = document.getElementById('causeList');
             container.innerHTML = '';
-            Object.entries(causeMap).sort((a,b)=>b[1]-a[1]).slice(0, 10).forEach(([name, count]) => {
+            Object.entries(causeMap).sort((a,b)=>b[1]-a[1]).slice(0, 8).forEach(([name, count]) => {
                 const isActive = activeFilters.Cause === name;
                 container.innerHTML += `<div onclick="setFilter('Cause', '${name}')" class="clickable p-3 rounded-xl mb-2 text-[10px] font-black ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-500'}">
                     <div class="flex justify-between uppercase"><span>${name}</span><span class="text-blue-500 ${isActive?'text-white':''}">${count}</span></div>
@@ -229,29 +251,7 @@
             });
         }
 
-        // Add BU filter to activeFilters if not exists
-        if (!activeFilters.BU) activeFilters.BU = 'all';
-
-        // Update applyFilters to handle BU
-        function applyFilters() {
-            filteredData = rawData.filter(t => {
-                if (activeFilters.Module !== 'all' && t.Module !== activeFilters.Module) return false;
-                if (activeFilters.Method !== 'all' && t['Resolution Method'] !== activeFilters.Method) return false;
-                if (activeFilters.BU && activeFilters.BU !== 'all' && t['BU Name'] !== activeFilters.BU) return false;
-                if (activeFilters.Month !== 'all') {
-                    const d = new Date(t['Resolved Date']);
-                    if (`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}` !== activeFilters.Month) return false;
-                }
-                if (activeFilters.Cause !== 'all') {
-                    const notes = t['Resolution Notes'] || '';
-                    if (!notes.includes(activeFilters.Cause)) return false;
-                }
-                return true;
-            });
-            updateUI();
-        }
-
-        function resetFilters() { activeFilters = { Module: 'all', Month: 'all', Method: 'all', Cause: 'all', BU: 'all' }; applyFilters(); }
+        function renderTable() {
             const body = document.getElementById('tableBody');
             body.innerHTML = '';
             filteredData.slice(0, 50).forEach(t => {
@@ -264,7 +264,7 @@
         }
 
         function showTicketDetails(id) {
-            const t = rawData.find(x => x.ID === id);
+            const t = window.rawData.find(x => x.ID === id);
             if (!t) return;
             document.getElementById('modalIdLabel').textContent = t.ID;
             document.getElementById('modalSubject').textContent = t.Subject;
