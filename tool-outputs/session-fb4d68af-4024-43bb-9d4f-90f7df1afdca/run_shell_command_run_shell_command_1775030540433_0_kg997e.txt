@@ -1,0 +1,3 @@
+{
+  "output": "Output: gh : The term 'gh' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.\nAt line:1 char:1\n+ gh --version\n+ ~~\n    + CategoryInfo          : ObjectNotFound: (gh:String) [], CommandNotFoundException\n    + FullyQualifiedErrorId : CommandNotFoundException\n \nExit Code: 1\nProcess Group PGID: 51824"
+}

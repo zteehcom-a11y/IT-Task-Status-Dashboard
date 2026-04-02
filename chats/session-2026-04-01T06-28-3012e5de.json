@@ -1,0 +1,76 @@
+{
+  "sessionId": "3012e5de-49da-4fda-a06a-f50627c3606b",
+  "projectHash": "471cb17c50892ca3cdd03bf38f9b2e81f91b8ab9029ea637b48d8f91f292ec86",
+  "startTime": "2026-04-01T06:29:07.378Z",
+  "lastUpdated": "2026-04-01T06:36:50.079Z",
+  "messages": [
+    {
+      "id": "622166fd-c2a5-4c0b-aaa8-2bc0c804805d",
+      "timestamp": "2026-04-01T06:29:07.378Z",
+      "type": "user",
+      "content": [
+        {
+          "text": "ข้อมูลดูไม่รู้เรื่อง ช่วยประมวลผมและสรุปให้ใหม่ทั้งหมด ดูหาค่า Insight และรูปแบบ Dashboard ต้องการให้ดูแล้วดึงดูดความสนใจทันทีที่มองเห็น"
+        }
+      ]
+    },
+    {
+      "id": "2deabb24-7f0b-4427-b57d-3fc17a443e99",
+      "timestamp": "2026-04-01T06:29:13.877Z",
+      "type": "error",
+      "content": "[API Error: You have exhausted your daily quota on this model.]"
+    },
+    {
+      "id": "02d980fe-4391-4768-a1a2-503ac0343f88",
+      "timestamp": "2026-04-01T06:29:13.878Z",
+      "type": "info",
+      "content": "This request failed. Press F12 for diagnostics, or run /settings and change \"Error Verbosity\" to full for full details."
+    },
+    {
+      "id": "a3d7a58c-9737-4f73-a658-faa5fb1edc6c",
+      "timestamp": "2026-04-01T06:29:30.413Z",
+      "type": "user",
+      "content": [
+        {
+          "text": "ข้อมูลดูไม่รู้เรื่อง ช่วยประมวลผมและสรุปให้ใหม่ทั้งหมด ดูหาค่า Insight และรูปแบบ Dashboard ต้องการให้ดูแล้วดึงดูดความสนใจทันทีที่มองเห็น"
+        }
+      ]
+    },
+    {
+      "id": "d0e62ee0-7a10-4453-9b1c-200fbc7e668d",
+      "timestamp": "2026-04-01T06:32:25.998Z",
+      "type": "error",
+      "content": "[API Error: You have exhausted your daily quota on this model.]"
+    },
+    {
+      "id": "72d1cea6-3e8c-4a63-a45c-65eb202bfb59",
+      "timestamp": "2026-04-01T06:32:25.999Z",
+      "type": "info",
+      "content": "This request failed. Press F12 for diagnostics, or run /settings and change \"Error Verbosity\" to full for full details."
+    },
+    {
+      "id": "2d7ec4db-8459-400f-9086-d9fe6cee3168",
+      "timestamp": "2026-04-01T06:33:06.574Z",
+      "type": "user",
+      "content": [
+        {
+          "text": "ข้อมูลดูไม่รู้เรื่อง ช่วยประมวลผมและสรุปให้ใหม่ทั้งหมด ดูหาค่า Insight และรูปแบบ Dashboard ต้องการให้ดูแล้วดึงดูดความสนใจทันทีที่มองเห็น"
+        }
+      ]
+    },
+    {
+      "id": "e41664e9-179b-4445-82dc-f9d42986fa80",
+      "timestamp": "2026-04-01T06:35:35.945Z",
+      "type": "error",
+      "content": "[API Error: You have exhausted your daily quota on this model.]"
+    },
+    {
+      "id": "fdd7e9c2-2569-4b31-a4a4-45b351311ddc",
+      "timestamp": "2026-04-01T06:35:35.947Z",
+      "type": "info",
+      "content": "This request failed. Press F12 for diagnostics, or run /settings and change \"Error Verbosity\" to full for full details."
+    }
+  ],
+  "kind": "main",
+  "summary": "สรุปข้อมูล, หา Insight, สร้าง Dashboard ดึงดูด"
+}

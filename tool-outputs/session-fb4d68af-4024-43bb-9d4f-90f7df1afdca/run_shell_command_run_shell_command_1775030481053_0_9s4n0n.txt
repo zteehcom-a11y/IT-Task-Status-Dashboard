@@ -1,0 +1,3 @@
+{
+  "output": "Output: git : The term 'git' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try \nagain.\nAt line:1 char:1\n+ git status\n+ ~~~\n    + CategoryInfo          : ObjectNotFound: (git:String) [], CommandNotFoundException\n    + FullyQualifiedErrorId : CommandNotFoundException\n \nExit Code: 1\nProcess Group PGID: 44724"
+}

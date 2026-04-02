@@ -1,0 +1,18 @@
+# Real Data Files (CONTAINS SENSITIVE EMPLOYEE INFO - DO NOT REMOVE FROM GITIGNORE)
+data.json
+data.js
+
+# Logs and temporary files
+logs.json
+*.log
+
+# Large data files (Optional: keep if you want them on GitHub)
+# Report Ticket 2026.xlsx
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Project specific
+.project_root
+.gemini/
