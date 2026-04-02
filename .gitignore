@@ -1,0 +1,13 @@
+# Raw Data Source (REAL NAMES - NEVER PUSH)
+data.json
+
+# Large data files
+# Report Ticket 2026.xlsx
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Project specific
+.project_root
+.gemini/

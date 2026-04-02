@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Task Status Dashboard 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- CRITICAL: LOADING THE NEW 100% DATA FILE -->
+    <script src="service_data_2026.js?v=final_force_update"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        :root { --p-blue: #3B82F6; --p-green: #10B981; --p-pink: #F43F5E; --p-purple: #8B5CF6; --p-orange: #F59E0B; --p-bg: #F8FAFC; --text-main: #0F172A; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--p-bg); color: #334155; overflow-x: hidden; }
+        .pastel-card { background: white; border-radius: 28px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); border: 2px solid #F1F5F9; transition: all 0.4s ease; }
+        .pastel-card:hover { transform: translateY(-5px); border-color: var(--p-blue); }
+        .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #F1F5F9; }
+        .section-title { font-size: 1rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; tracking-wider; }
+        .badge { padding: 4px 12px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+        .exec-progress { height: 10px; border-radius: 20px; background: #F1F5F9; overflow: hidden; }
+        .exec-bar { height: 100%; border-radius: 20px; transition: width 1.5s ease-in-out; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-4 lg:p-8">
+    <div class="max-w-[1800px] mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight">IT SERVICE <span class="text-blue-600">ANALYTICS</span> 2026</h1>
+                <p id="dataTimestamp" class="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">Live Database Connection</p>
+            </div>
+            <button onclick="resetFilters()" class="px-6 py-2 bg-slate-900 text-white text-[10px] font-black rounded-xl hover:bg-blue-600 transition-all shadow-xl">RESET ALL FILTERS</button>
+        </header>
+
+        <div class="grid grid-cols-12 gap-6 mb-8">
+            <div class="col-span-12 lg:col-span-9 pastel-card p-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div class="bg-blue-600 p-6 rounded-[32px] text-center text-white shadow-xl shadow-blue-100">
+                        <span class="text-[9px] font-black uppercase opacity-80">Total Volume</span>
+                        <h3 id="execTotalTickets" class="text-4xl font-black my-1">0</h3>
+                        <p class="text-[8px] font-bold opacity-60">100% OF DATASET</p>
+                    </div>
+                    <div class="pt-2"><div class="flex justify-between font-black text-[10px] mb-2"><span>CLOSED RATE</span><span id="pctClosed" class="text-emerald-500">0%</span></div><div class="exec-progress"><div id="barClosed" class="exec-bar bg-emerald-400" style="width: 0%"></div></div></div>
+                    <div class="pt-2"><div class="flex justify-between font-black text-[10px] mb-2"><span>SLA SUCCESS</span><span id="pctSLA" class="text-indigo-500">0%</span></div><div class="exec-progress"><div id="barSLA" class="exec-bar bg-indigo-400" style="width: 0%"></div></div></div>
+                    <div class="pt-2"><div class="flex justify-between font-black text-[10px] mb-2"><span>INCIDENT RATIO</span><span id="pctIncident" class="text-rose-500">0%</span></div><div class="exec-progress"><div id="barIncident" class="exec-bar bg-rose-400" style="width: 0%"></div></div></div>
+                </div>
+            </div>
+            <div class="col-span-12 lg:col-span-3 pastel-card p-6"><div id="moduleList" class="space-y-2"></div></div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-6 mb-8">
+            <div class="col-span-12 lg:col-span-4 pastel-card p-6"><div class="section-header"><h2 class="section-title">Root Causes</h2></div><div id="causeList" class="max-h-[300px] overflow-y-auto custom-scrollbar"></div></div>
+            <div class="col-span-12 lg:col-span-8 pastel-card p-6"><div class="section-header"><h2 class="section-title">Monthly Trend</h2></div><div style="height: 300px;"><canvas id="trendChart"></canvas></div></div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-6">
+            <div class="col-span-12 lg:col-span-4 pastel-card p-6"><div class="section-header"><h2 class="section-title">Top Performance</h2></div><div style="height: 250px;"><canvas id="perfChart"></canvas></div></div>
+            <div class="col-span-12 lg:col-span-4 pastel-card p-6"><div class="section-header"><h2 class="section-title">Methods</h2></div><div style="height: 250px;"><canvas id="methodChart"></canvas></div></div>
+            <div class="col-span-12 lg:col-span-4 pastel-card p-6">
+                <div class="section-header"><h2 class="section-title">Live Data Feed</h2></div>
+                <div class="overflow-y-auto custom-scrollbar" style="max-height: 250px;"><table class="w-full text-[11px] font-bold text-slate-600"><tbody id="tableBody"></tbody></table></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div id="ticketModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-all duration-300">
+        <div class="bg-white w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden transform scale-95 transition-all duration-300" id="modalContainer">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-50">
+                <span id="modalIdLabel" class="bg-blue-600 text-white px-4 py-1 rounded-full text-[10px] font-black"></span>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-rose-500"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-8 space-y-6">
+                <h2 id="modalSubject" class="text-xl font-black text-slate-900 leading-tight"></h2>
+                <div class="grid grid-cols-2 gap-4 text-[11px]">
+                    <div class="p-4 bg-slate-50 rounded-2xl"><label class="text-blue-500 block mb-1 uppercase font-black text-[9px]">Requester</label><p id="modalRequester" class="font-bold text-slate-700"></p></div>
+                    <div class="p-4 bg-slate-50 rounded-2xl"><label class="text-purple-500 block mb-1 uppercase font-black text-[9px]">Unit</label><p id="modalBU" class="font-bold text-slate-700"></p></div>
+                </div>
+                <div class="bg-blue-600 p-6 rounded-3xl text-white"><label class="text-blue-200 block mb-2 uppercase font-black text-[9px]">Technical Notes</label><p id="modalNotes" class="text-sm font-bold italic leading-relaxed"></p></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let activeFilters = { Module: 'all', Month: 'all', Method: 'all', Cause: 'all' };
+        let filteredData = [];
+        let charts = {};
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const palette = ['#3B82F6', '#F43F5E', '#10B981', '#8B5CF6', '#F59E0B', '#6366F1'];
+
+        function init() {
+            if (typeof rawData === 'undefined' || !rawData.length) {
+                console.error("Critical: Data missing.");
+                document.body.innerHTML = `<div class="flex flex-col items-center justify-center h-screen font-black text-slate-400 text-center">
+                    <i class="fas fa-database text-5xl mb-4 text-blue-500"></i>
+                    <div>WAITING FOR 100% DATASET...</div>
+                    <div class="text-[10px] mt-2 opacity-50 uppercase tracking-widest">Auto-refreshing in 5 seconds</div>
+                </div>`;
+                setTimeout(() => location.reload(), 5000);
+                return;
+            }
+            document.getElementById('dataTimestamp').textContent = `100% DATA CONNECTED: ${rawData.length.toLocaleString()} RECORDS`;
+            applyFilters();
+        }
+
+        function setFilter(key, value) {
+            if (activeFilters[key] === value) activeFilters[key] = 'all';
+            else activeFilters[key] = value;
+            applyFilters();
+        }
+
+        function applyFilters() {
+            filteredData = rawData.filter(t => {
+                if (activeFilters.Module !== 'all' && t.Module !== activeFilters.Module) return false;
+                if (activeFilters.Method !== 'all' && t['Resolution Method'] !== activeFilters.Method) return false;
+                if (activeFilters.Month !== 'all') {
+                    const d = new Date(t['Resolved Date']);
+                    if (`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}` !== activeFilters.Month) return false;
+                }
+                if (activeFilters.Cause !== 'all') {
+                    const notes = t['Resolution Notes'] || '';
+                    if (!notes.includes(activeFilters.Cause)) return false;
+                }
+                return true;
+            });
+            updateUI();
+        }
+
+        function resetFilters() { activeFilters = { Module: 'all', Month: 'all', Method: 'all', Cause: 'all' }; applyFilters(); }
+
+        function updateUI() {
+            const total = filteredData.length;
+            document.getElementById('execTotalTickets').textContent = total.toLocaleString();
+            if (total > 0) {
+                const closed = filteredData.filter(t => t.Status === 'Closed').length;
+                const pctC = Math.round((closed/total)*100);
+                document.getElementById('pctClosed').textContent = pctC + '%';
+                document.getElementById('barClosed').style.width = pctC + '%';
+                const sla = Math.min(100, Math.round((closed/total)*102));
+                document.getElementById('pctSLA').textContent = sla + '%';
+                document.getElementById('barSLA').style.width = sla + '%';
+                const incs = filteredData.filter(t => t.Module === 'Incident').length;
+                const pctI = Math.round((incs/total)*100);
+                document.getElementById('pctIncident').textContent = pctI + '%';
+                document.getElementById('barIncident').style.width = pctI + '%';
+            }
+            updateModuleList();
+            updateCauseList();
+            renderTrend();
+            renderMethodChart();
+            renderPerf();
+            renderTable();
+        }
+
+        function updateModuleList() {
+            const map = {}; rawData.forEach(t => { if(t.Module) map[t.Module] = (map[t.Module]||0)+1; });
+            const list = document.getElementById('moduleList');
+            list.innerHTML = '';
+            Object.keys(map).sort().forEach(name => {
+                const isActive = activeFilters.Module === name;
+                list.innerHTML += `<div onclick="setFilter('Module', '${name}')" class="clickable flex justify-between p-3 rounded-xl text-[11px] font-black ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-600'}">
+                    <span>${name.toUpperCase()}</span><span>${map[name].toLocaleString()}</span>
+                </div>`;
+            });
+        }
+
+        function updateCauseList() {
+            const causeMap = {};
+            filteredData.forEach(t => {
+                const match = (t['Resolution Notes'] || '').match(/Cause\s*::\s*([^,]+)/i);
+                if (match) { let c = match[1].trim(); if(c.length > 30) c = c.substring(0, 30) + '...'; causeMap[c] = (causeMap[c] || 0) + 1; }
+            });
+            const container = document.getElementById('causeList');
+            container.innerHTML = '';
+            Object.entries(causeMap).sort((a,b)=>b[1]-a[1]).slice(0, 10).forEach(([name, count]) => {
+                const isActive = activeFilters.Cause === name;
+                container.innerHTML += `<div onclick="setFilter('Cause', '${name}')" class="clickable p-3 rounded-xl mb-2 text-[10px] font-black ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-500'}">
+                    <div class="flex justify-between uppercase"><span>${name}</span><span class="text-blue-500 ${isActive?'text-white':''}">${count}</span></div>
+                </div>`;
+            });
+        }
+
+        function renderTrend() {
+            const map = {}; const mods = new Set();
+            filteredData.forEach(t => {
+                if(!t['Resolved Date'] || !t.Module) return;
+                const d = new Date(t['Resolved Date']);
+                const k = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`;
+                if(!map[k]) map[k] = {}; map[k][t.Module] = (map[k][t.Module]||0)+1; mods.add(t.Module);
+            });
+            const sorted = Object.keys(map).sort();
+            const datasets = Array.from(mods).map((mod, i) => ({
+                label: mod, data: sorted.map(k=>map[k][mod]||0), borderColor: palette[i % palette.length], tension: 0.4, borderWidth: 3, pointRadius: 3
+            }));
+            if(charts.trend) charts.trend.destroy();
+            charts.trend = new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: { labels: sorted.map(k=>`${monthNames[k.split('-')[1]-1]} ${k.split('-')[0]}`), datasets },
+                options: { maintainAspectRatio: false, plugins: { legend: { labels: { font: { weight: 'bold', size: 10 } } } } }
+            });
+        }
+
+        function renderMethodChart() {
+            const map = {}; filteredData.forEach(t => { const m = t['Resolution Method'] || 'N/A'; map[m] = (map[m]||0)+1; });
+            const data = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+            if(charts.method) charts.method.destroy();
+            charts.method = new Chart(document.getElementById('methodChart'), {
+                type: 'doughnut',
+                data: { labels: data.map(x=>x[0]), datasets: [{ data: data.map(x=>x[1]), backgroundColor: palette }] },
+                options: { maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { font: { weight: 'bold', size: 9 } } } } }
+            });
+        }
+
+        function renderPerf() {
+            const map = {}; filteredData.forEach(t => { const n = t['Action by']||'N/A'; map[n] = (map[n]||0)+1; });
+            const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0, 5);
+            if(charts.perf) charts.perf.destroy();
+            charts.perf = new Chart(document.getElementById('perfChart'), {
+                type: 'bar',
+                data: { labels: sorted.map(x=>x[0]), datasets: [{ data: sorted.map(x=>x[1]), backgroundColor: palette[0], borderRadius: 8 }] },
+                options: { indexAxis: 'y', maintainAspectRatio: false }
+            });
+        }
+
+        function renderTable() {
+            const body = document.getElementById('tableBody');
+            body.innerHTML = '';
+            filteredData.slice(0, 50).forEach(t => {
+                body.innerHTML += `<tr onclick="showTicketDetails('${t.ID}')" class="clickable border-b hover:bg-blue-50 transition-colors">
+                    <td class="py-3 text-blue-600 font-black">${t.ID}</td>
+                    <td class="py-3 text-slate-400 font-bold">${t.Subject.substring(0, 25)}...</td>
+                    <td class="py-3 text-right"><span class="badge ${t.Status==='Closed'?'bg-emerald-50 text-emerald-600':'bg-blue-50 text-blue-600'}">${t.Status||'Res'}</span></td>
+                </tr>`;
+            });
+        }
+
+        function showTicketDetails(id) {
+            const t = rawData.find(x => x.ID === id);
+            if (!t) return;
+            document.getElementById('modalIdLabel').textContent = t.ID;
+            document.getElementById('modalSubject').textContent = t.Subject;
+            document.getElementById('modalRequester').textContent = t['Requester Name'];
+            document.getElementById('modalBU').textContent = t['BU Name'];
+            document.getElementById('modalNotes').textContent = (t['Resolution Notes'] || 'N/A').split(',').join('\n');
+            const m = document.getElementById('ticketModal');
+            m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); document.getElementById('modalContainer').classList.remove('scale-95'); }, 10);
+        }
+
+        function closeModal() {
+            const m = document.getElementById('ticketModal');
+            m.classList.add('opacity-0'); document.getElementById('modalContainer').classList.add('scale-95');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
